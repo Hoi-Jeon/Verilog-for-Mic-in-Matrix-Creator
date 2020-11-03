@@ -2,7 +2,7 @@
 The [MATRIX Creator](https://matrix-io.github.io/matrix-documentation/matrix-creator/overview/) is a fully-featured development board, including sensors, wireless communications, and an FPGA. The purpose of this hobby project is to investigate its FPGA code for 8 [PDM microphones](https://matrix-io.github.io/matrix-documentation/matrix-creator/resources/microphone/).
 
 ![Matrix Creator ODAS example](Pictures/ODAS_Matrix_Creator.gif)
-[ODAS] (https://www.hackster.io/matrix-labs/direction-of-arrival-for-matrix-voice-creator-using-odas-b7a15b) is a library for direction of arrival, tracking in Matrix Creator 
+[ODAS](https://www.hackster.io/matrix-labs/direction-of-arrival-for-matrix-voice-creator-using-odas-b7a15b) is a library for direction of arrival, tracking in Matrix Creator 
 
 ## Structure of FPGA code for PDM microphones
 
