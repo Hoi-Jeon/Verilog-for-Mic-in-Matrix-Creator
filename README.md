@@ -6,18 +6,58 @@ The [MATRIX Creator](https://matrix-io.github.io/matrix-documentation/matrix-cre
 
 ## Structure of FPGA code for PDM microphones
 
-![Matrix Creator ODAS example](Pictures/FPGA_File_Structure.png)
+![FPGA_File_Structure](Pictures/FPGA_File_Structure.png)
 
+
+## Test bench of FPGA code for PDM microphones
+The structure of test bench of FPGA code for PDM microphones is as shown below:
+![TestBench_Structure](Pictures/FPGA_TestBench_Structure.png)
+
+### Mic_Array_TB.v
+TBD
+- Sys. Freq: 150 Mhz
+- Out Freq: 16 kHz
+- PDM Freq: 3 Mhz
+- PDM ratio: 49
+- PDM Reading Time: 28
+- Decimation ratio (sample rate): 186 (i.e. PDM Freq / Out Freq)
+
+
+### fir_data.v
+TBD
+
+### pdm_data.v
+TBD
+
+### cic_sync.v
+TBD
+
+### cic.v
+TBD
+
+#### cic_op_fsm.v
+TBD
+
+#### cic_int.v
+TBD
+
+#### cic_comb.v
+TBD
+
+### fir.v
+TBD
 - Filter information
   - 128 FIR TAB
   - 3 stages CIC
   - General information
-- Sys. Freq: 150 Mhz
-  - Out Freq: 16 kHz
-  - PDM Freq: 3 Mhz
-  - PDM ratio: 49
-  - PDM Reading Time: 28
-  - Decimation ratio (sample rate): 186 (i.e. PDM Freq / Out Freq)
+
+#### fir_pipe_fsm.v
+TBD
+
+#### mic_array_buffer.v
+TBD
+
+
 
 ## Open points
 - TBD
