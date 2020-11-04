@@ -40,9 +40,64 @@ TBD
 
 #### cic_int.v
 TBD
+![Integrator Filter in CIC](Pictures/Integrator_Filter.png)
+
+```
+assign sum = data_out + data_in;
+
+always @(posedge clk or posedge resetn) begin
+  if (resetn)
+    data_out <= 0;
+  else begin
+  case({read_en,wr_en})
+    2'b10 : begin
+      data_out <= accumulator[channel];
+      end
+
+    2'b01 : begin
+      accumulator[channel] <= sum;
+      data_out <= data_out; 
+      end
+
+    default :
+    data_out <= data_out;
+    endcase
+  end
+end
+```
+
 
 #### cic_comb.v
 TBD
+![Comb Filter in CIC](Pictures/Comb_Filter.png)
+
+```
+assign diff = data_in - prev;
+
+always @(posedge clk or posedge resetn) begin
+    if (resetn) begin
+    data_out <= 0;
+    prev     <= 0;
+  end
+  else begin
+    case({read_en,wr_en})
+    2'b10 :
+      begin
+      data_out <= data_out_prev[channel];
+      prev     <= data_in_prev[channel];
+      end
+    2'b01 :
+      begin
+      data_in_prev[channel]  <= data_in;
+      data_out_prev[channel] <= diff;
+      end
+    default :
+      data_out <= data_out;
+      endcase
+  end
+end
+```
+
 
 ### fir.v
 TBD
