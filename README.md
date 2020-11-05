@@ -18,7 +18,7 @@ In order create a test bench for reading and post-processing data **only** from 
 </br><*A structure of Test Bench for PDM microphones*>
 
 ### Mic_Array_TB.v
-*Mic_Array_TB.v" is the main module for this test bench. Here, several important frequencies are defined as follows:
+*"Mic_Array_TB.v"* is the main module for this test bench. Here, several important frequencies are defined as follows:
 
 - System clock frequency: 150 Mhz
 - PDM frequency: 3 Mhz
