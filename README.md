@@ -12,12 +12,12 @@ Matrix creator uses the Wishbone Bus to communicate between RPi and several sens
 
 ## Test bench of FPGA code for PDM microphones
 
-In order create a test bench for reading and post-processing data **only** from 8 PDM microphones, some parts of the above full FPGA strucutre were selected and modified. Its Hierarchy in *Xilinx ISE Deisng Suite* is shown below:
+In order to create a test bench for reading and post-processing data **only** from 8 PDM microphones, some parts of the above full FPGA strucutre were selected and modified. Its Hierarchy in *Xilinx ISE Deisng Suite* is shown below:
 
 ![TestBench_Structure](Pictures/FPGA_TestBench_Structure.png)
 </br><*A structure of Test Bench for PDM microphones*>
 
-### Mic_Array_TB.v
+### Mic_Array_Tb
 *"Mic_Array_TB.v"* is the main module for this test bench. Here, several important frequencies are defined as follows:
 
 - System clock frequency: 150 Mhz
@@ -47,7 +47,7 @@ $fclose(fd);
 
 
 ### fir_data.v
-*fir_data.v* is the module for reading the FIR filter coefficient from an external ascii file. In this test bench, 128 FIR filter coefficient should be used, so this external ascii file should have 128 row in a single column. The values should be written in **16 bit fixed-point in binary** and **two's complement for negative numbers**.
+*"fir_data.v"* is the module for reading the FIR filter coefficient from an external ascii file. In this test bench, 128 FIR filter coefficient should be used, so this external ascii file should have 128 row in a single column. The values should be written in **16 bit fixed-point in binary** and **two's complement for negative numbers**.
 
 ```verilog
 // define an array for saving the read FIR filter coefficient
@@ -59,20 +59,28 @@ end
 ```
 
 ### pdm_data.v
-*pdm_data.v* is the module for reading PDM microphone signals from an external ascii file.
+*"pdm_data.v"* is the module for reading PDM microphone signals from an external ascii file. This external ascii file shoudl have 8 binary digit in a single row and the maximum number of row should be under 150,000, which can be changed in [Mic_Array_TB.v](#mic_array_tb).
 
 ```verilog
+# Define a 2D array for saving 150_000 x 8 data from an external ascii file
+reg [CHANNELS-1:0] in_data [0:NLINEFILE-1];
 
+# Output PDM data from the 2D array "in_data", whenever input "indx" changes
+always @ (indx)
+  pdm_data = in_data [indx];
+
+initial
+  $readmemb("location of ascii file including the input PDM file", in_data);
 ```
 
 ### cic_sync.v
-*cic_sync.v* is the module for **.
+*"cic_sync.v"* is the module for **.
 
 ### cic.v
-*cic.v* is the module for **.
+*"cic.v"* is the module for **.
 
 #### cic_op_fsm.v
-*cic_op_fsm.v* is the module for **.
+*"cic_op_fsm.v"* is the module for **.
 
 #### cic_int.v
 *cic_int.v* is the module for **.
@@ -87,13 +95,15 @@ always @(posedge clk or posedge resetn) begin
     data_out <= 0;
   else begin
   case({read_en,wr_en})
-    2'b10 : begin
-      data_out <= accumulator[channel];
+    2'b10 : 
+      begin
+        data_out <= accumulator[channel];
       end
 
-    2'b01 : begin
-      accumulator[channel] <= sum;
-      data_out <= data_out; 
+    2'b01 : 
+      begin
+        accumulator[channel] <= sum;
+        data_out <= data_out; 
       end
 
     default :
@@ -122,13 +132,13 @@ always @(posedge clk or posedge resetn) begin
     case({read_en,wr_en})
     2'b10 :
       begin
-      data_out <= data_out_prev[channel];
-      prev     <= data_in_prev[channel];
+        data_out <= data_out_prev[channel];
+        prev     <= data_in_prev[channel];
       end
     2'b01 :
       begin
-      data_in_prev[channel]  <= data_in;
-      data_out_prev[channel] <= diff;
+        data_in_prev[channel]  <= data_in;
+        data_out_prev[channel] <= diff;
       end
     default :
       data_out <= data_out;
