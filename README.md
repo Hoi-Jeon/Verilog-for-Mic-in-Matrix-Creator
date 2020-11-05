@@ -8,26 +8,22 @@ The [MATRIX Creator](https://matrix-io.github.io/matrix-documentation/matrix-cre
 Matrix creator uses the Wishbone Bus to communicate between RPi and several sensors. The [Wishbone Bus](https://en.wikipedia.org/wiki/Wishbone_(computer_bus)) is an open source hardware computer bus intended to let the parts of an integrated circuit communicate with each other. Among the whole Matrix Creator's Verilog modules, there are two modules, which are relevant to receiving the signals from 8 PDM microphones, i.e. ***wb_mic_array.v*** and ***bram.v***. The main part for reading microphone signals is ***wb_mic_array.v*** and ***bram.v*** is only providing the *"decimation ratio"* and *"microphone gain"* to ***wb_mic_array.v***.
 
 ![FPGA_File_Structure](Pictures/FPGA_File_Structure.png)
-
-</br> *<A structure of FPGA code for PDM microphones>*
+</br><*A structure of FPGA code for PDM microphones*>
 
 ## Test bench of FPGA code for PDM microphones
 The structure of test bench of FPGA code for PDM microphones is as shown below:
 ![TestBench_Structure](Pictures/FPGA_TestBench_Structure.png)
+</br><*A structure of Test Bench for PDM microphones*>
 
-</br> *<A structure of Test Bench for PDM microphones>*
+1. Mic_Array_TB.v
+  - Sys. Freq: 150 Mhz
+  - Out Freq: 16 kHz
+  - PDM Freq: 3 Mhz
+  - PDM ratio: 49
+  - PDM Reading Time: 28
+  - Decimation ratio (sample rate): 186 (i.e. PDM Freq / Out Freq)
 
-### Mic_Array_TB.v
-TBD
-- Sys. Freq: 150 Mhz
-- Out Freq: 16 kHz
-- PDM Freq: 3 Mhz
-- PDM ratio: 49
-- PDM Reading Time: 28
-- Decimation ratio (sample rate): 186 (i.e. PDM Freq / Out Freq)
-
-
-### fir_data.v
+2. fir_data.v
 TBD
 
 ### pdm_data.v
