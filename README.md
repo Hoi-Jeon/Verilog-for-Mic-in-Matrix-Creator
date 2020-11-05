@@ -17,7 +17,7 @@ In order to create a test bench for reading and post-processing data **only** fr
 ![TestBench_Structure](Pictures/FPGA_TestBench_Structure.png)
 </br><*A structure of Test Bench for PDM microphones*>
 
-### Mic_Array_Tb
+### mic_array_TB
 *"Mic_Array_TB.v"* is the main module for this test bench. Here, several important frequencies are defined as follows:
 
 - System clock frequency: 150 Mhz
@@ -46,7 +46,7 @@ $fclose(fd);
 ```
 
 
-### fir_data.v
+### fir_data
 *"fir_data.v"* is the module for reading the FIR filter coefficient from an external ascii file. In this test bench, 128 FIR filter coefficient should be used, so this external ascii file should have 128 row in a single column. The values should be written in **16 bit fixed-point in binary** and **two's complement for negative numbers**.
 
 ```verilog
@@ -58,7 +58,7 @@ initial begin
 end
 ```
 
-### pdm_data.v
+### pdm_data
 *"pdm_data.v"* is the module for reading PDM microphone signals from an external ascii file. This external ascii file shoudl have 8 binary digit in a single row and the maximum number of row should be under 150,000, which can be changed in [Mic_Array_TB.v](#mic_array_tb).
 
 ```verilog
@@ -73,16 +73,16 @@ initial
   $readmemb("location of ascii file including the input PDM file", in_data);
 ```
 
-### cic_sync.v
+### cic_sync
 *"cic_sync.v"* is the module for **.
 
-### cic.v
+### cic
 *"cic.v"* is the module for **.
 
-#### cic_op_fsm.v
+#### cic_op_fsm
 *"cic_op_fsm.v"* is the module for **.
 
-#### cic_int.v
+#### cic_int
 *cic_int.v* is the module for **.
 
 ![Integrator Filter in CIC](Pictures/Integrator_Filter.png)
@@ -114,7 +114,7 @@ end
 ```
 
 
-#### cic_comb.v
+#### cic_comb
 *cic_comb.v* is the module for **.
 
 
@@ -148,7 +148,7 @@ end
 ```
 
 
-### fir.v
+### fir
 *fir.v* is the module for **.
 
 - Filter information
@@ -156,10 +156,10 @@ end
   - 3 stages CIC
   - General information
 
-#### fir_pipe_fsm.v
+#### fir_pipe_fsm
 *fir_pipe_fsm.v* is the module for **.
 
-#### mic_array_buffer.v
+#### mic_array_buffer
 *mic_array_buffer.v* is the module for **.
 
 
