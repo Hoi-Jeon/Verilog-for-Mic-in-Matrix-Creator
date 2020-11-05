@@ -35,7 +35,7 @@ always
 #PDM_FILE_READ_CLOCK
 begin
   indx_PDM = indx_PDM + 1'd1;
-end	
+end
 ```
 
 The ascii file for saving the ouput of test bench is opened/written/closed in this main module. Please be ware that one can start receiving the test bench outputs only after the first number of time steps reaches the size FIR filter coeffcient.
@@ -53,7 +53,7 @@ $fclose(fd);
 // define an array for saving the read FIR filter coefficient
 reg signed [FIR_TAP_WIDTH-1:0] fir_data [0:FIR_TAP-1]; // FIR_TAP_WIDTH = 16 and FIR_TAP = 128
 
-initial begin		
+initial begin
   $readmemb("location of ascii file including FIR filter coefficient", fir_data);
 end
 ```
