@@ -11,35 +11,72 @@ Matrix creator uses the Wishbone Bus to communicate between RPi and several sens
 </br><*A structure of FPGA code for PDM microphones*>
 
 ## Test bench of FPGA code for PDM microphones
-The structure of test bench of FPGA code for PDM microphones is as shown below:
+
+In order create a test bench for reading and post-processing data **only** from 8 PDM microphones, some parts of the above full FPGA strucutre were selected and modified. Its Hierarchy in *Xilinx ISE Deisng Suite* is shown below:
+
 ![TestBench_Structure](Pictures/FPGA_TestBench_Structure.png)
 </br><*A structure of Test Bench for PDM microphones*>
 
-1. Mic_Array_TB.v
-  - Sys. Freq: 150 Mhz
-  - Out Freq: 16 kHz
-  - PDM Freq: 3 Mhz
-  - PDM ratio: 49
-  - PDM Reading Time: 28
-  - Decimation ratio (sample rate): 186 (i.e. PDM Freq / Out Freq)
+### Mic_Array_TB.v
+*Mic_Array_TB.v" is the main module for this test bench. Here, several important frequencies are defined as follows:
 
-2. fir_data.v
-TBD
+- System clock frequency: 150 Mhz
+- PDM frequency: 3 Mhz
+- Output frequency: 16 Khz
+- PDM ratio: 50 (i.e. System clock frequency / PDM frequency)
+- Decimation ratio: 187 (i.e. PDM frequency / Output frequency)
+
+The frequency for reading signals from PDM microphone is set by *PDM_FILE_READ_CLOCK*.
+```verilog
+// Read time period: 2 was multiplied, since the one clock consists of two values, i.e. "one" and "zero"
+parameter [DATA_WIDTH-1:0] PDM_FILE_READ_CLOCK = $floor(PDM_RATIO+1)*2; 
+
+always
+#PDM_FILE_READ_CLOCK
+begin
+  indx_PDM = indx_PDM + 1'd1;
+end	
+```
+
+The ascii file for saving the ouput of test bench is opened/written/closed in this main module. Please be ware that one can start receiving the test bench outputs only after the first number of time steps reaches the size FIR filter coeffcient.
+```verilog
+integer fd;
+fd = $fopen("location of output ascii file", "w");
+$fclose(fd); 
+```
+
+
+### fir_data.v
+*fir_data.v* is the module for reading the FIR filter coefficient from an external ascii file. In this test bench, 128 FIR filter coefficient should be used, so this external ascii file should have 128 row in a single column. The values should be written in **16 bit fixed-point in binary** and **two's complement for negative numbers**.
+
+```verilog
+// define an array for saving the read FIR filter coefficient
+reg signed [FIR_TAP_WIDTH-1:0] fir_data [0:FIR_TAP-1]; // FIR_TAP_WIDTH = 16 and FIR_TAP = 128
+
+initial begin		
+  $readmemb("location of ascii file including FIR filter coefficient", fir_data);
+end
+```
 
 ### pdm_data.v
-TBD
+*pdm_data.v* is the module for reading PDM microphone signals from an external ascii file.
+
+```verilog
+
+```
 
 ### cic_sync.v
-TBD
+*cic_sync.v* is the module for **.
 
 ### cic.v
-TBD
+*cic.v* is the module for **.
 
 #### cic_op_fsm.v
-TBD
+*cic_op_fsm.v* is the module for **.
 
 #### cic_int.v
-TBD
+*cic_int.v* is the module for **.
+
 ![Integrator Filter in CIC](Pictures/Integrator_Filter.png)
 
 ```verilog
@@ -60,7 +97,7 @@ always @(posedge clk or posedge resetn) begin
       end
 
     default :
-    data_out <= data_out;
+      data_out <= data_out;
     endcase
   end
 end
@@ -68,7 +105,9 @@ end
 
 
 #### cic_comb.v
-TBD
+*cic_comb.v* is the module for **.
+
+
 ![Comb Filter in CIC](Pictures/Comb_Filter.png)
 
 ```verilog
@@ -93,25 +132,25 @@ always @(posedge clk or posedge resetn) begin
       end
     default :
       data_out <= data_out;
-      endcase
+    endcase
   end
 end
 ```
 
 
 ### fir.v
-TBD
+*fir.v* is the module for **.
+
 - Filter information
   - 128 FIR TAB
   - 3 stages CIC
   - General information
 
 #### fir_pipe_fsm.v
-TBD
+*fir_pipe_fsm.v* is the module for **.
 
 #### mic_array_buffer.v
-TBD
-
+*mic_array_buffer.v* is the module for **.
 
 
 ## Open points
