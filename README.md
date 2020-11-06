@@ -125,8 +125,8 @@ end
 
 1. Update PDM signal based on the ***"pdm_read_enable"***
 2. Convert the read binary ("0", "1") into ("-1", "1" in signed 23 bits, two's complement), respectively
-3. Perform ***3 times*** of [integrator](#cic_int), according to the activated ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm)
-4. Perform ***3 times*** of [comb filter](#cic_comb), according to the activated ***"read_en & comb_enable"*** and ***"wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm)
+3. Perform ***3 times*** of [integrator](#cic_int) in cascade, according to the activated ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm)
+4. Perform ***3 times*** of [comb filter](#cic_comb) in cascade, according to the activated ***"read_en & comb_enable"*** and ***"wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm)
 
 
 #### cic_op_fsm
