@@ -76,7 +76,7 @@ initial
 ### cic_sync
 *"cic_sync.v"* is the module for controlling the following outputs:
 - **pdm_clk** is one bit *reg* having a positive edge, when a new PDM signal is available
-- **read_enable** is one bit *reg* being *true*, when a new PDM signal is ready to be read
+- **read_enable** (i.e. **pdm_read_enable** in [cic.v](#cic)) is one bit *reg* being *true*, when a new PDM signal is ready to be read
 - **integrator_enable** is one bit *reg* being *true*, while 1~8 PDM signals are being read
 - **comb_enable** is one bit *reg* being *true*, in every decimation during one period of **pdm_clk**
 
@@ -121,17 +121,12 @@ end
 
 
 ### cic
-*"cic.v"* is the module for performing [CIC filter](https://en.wikipedia.org/wiki/Cascaded_integrator%E2%80%93comb_filter).
+*"cic.v"* is the module for performing [CIC filter](https://en.wikipedia.org/wiki/Cascaded_integrator%E2%80%93comb_filter). Its main four functiosn can be summarized as follows:
 
-
-
-```verilog
-
-```
-
-```verilog
-
-```
+1. Update PDM signal based on the ***pdm_read_enable***
+2. Convert the read binary ("0", "1") into ("-1", "1" in signed 23 bits, two's complement)
+3. Perform ***3 times*** of [integrator](#cic_int), according to the activated ***read_en*** and ***wr_en***
+4. Perform ***3 times*** of [comb filter](#cic_comb), according to the activated ***read_en & comb_enable*** and ***wr_en & comb_enable***
 
 
 #### cic_op_fsm
@@ -175,9 +170,6 @@ always @(posedge clk or posedge resetn) begin
   end
 end
 ```
-
-
-
 
 
 #### cic_comb
