@@ -80,6 +80,16 @@ initial
 - **integrator_enable** is one bit *reg* being *true*, while 1~8 PDM signals are being read
 - **com_enable** is one bit *reg* being *true*, in every decimation during one period of **pdm_clk**
 
+![cic_sync_1](Pictures/cic_sync_1.png)
+</br><*Waveform in cic_syn.c*>
+
+![cic_sync_2](Pictures/cic_sync_2.png)
+</br><*1st zoomed-in Waveform in cic_syn.c*>
+
+![cic_sync_3](Pictures/cic_sync_3.png)
+</br><*2nd zoomed-in Waveform in cic_syn.c*>
+
+
 ### cic
 *"cic.v"* is the module for **.
 
