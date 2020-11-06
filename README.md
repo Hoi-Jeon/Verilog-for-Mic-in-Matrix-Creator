@@ -1,11 +1,11 @@
 # Verilog for Microphones in Matrix Creator
-The [MATRIX Creator](https://matrix-io.github.io/matrix-documentation/matrix-creator/overview/) is a fully-featured development board, including sensors, wireless communications, and an FPGA. The purpose of this hobby project is to investigate its FPGA code for 8 [PDM microphones](https://matrix-io.github.io/matrix-documentation/matrix-creator/resources/microphone/).  
+The [MATRIX Creator](https://matrix-io.github.io/matrix-documentation/matrix-creator/overview/) is a fully-featured development board, including sensors, wireless communications, and an FPGA. The purpose of this hobby project is to investigate its FPGA code for receiving signals from 8 [PDM microphones](https://matrix-io.github.io/matrix-documentation/matrix-creator/resources/microphone/).  
 
 ![Matrix Creator ODAS example](Pictures/ODAS_Matrix_Creator.gif)
 </br>*<An example of applying beam-forming with [ODAS](https://www.hackster.io/matrix-labs/direction-of-arrival-for-matrix-voice-creator-using-odas-b7a15b), which is a library for direction of arrival, tracking in Matrix Creator>*
 
 ## Structure of FPGA code for PDM microphones
-Matrix creator uses the Wishbone Bus to communicate between RPi and several sensors. The [Wishbone Bus](https://en.wikipedia.org/wiki/Wishbone_(computer_bus)) is an open source hardware computer bus intended to let the parts of an integrated circuit communicate with each other. Among the whole Matrix Creator's Verilog modules, there are two modules, which are relevant to receiving the signals from 8 PDM microphones, i.e. ***wb_mic_array.v*** and ***bram.v***. The main part for reading microphone signals is ***wb_mic_array.v*** and ***bram.v*** is only providing the *"decimation ratio"* and *"microphone gain"* to ***wb_mic_array.v***.
+Matrix creator uses the Wishbone Bus to communicate between RPi and several sensors. The [Wishbone Bus](https://en.wikipedia.org/wiki/Wishbone_(computer_bus)) is an open source hardware computer bus intended to let the parts of an integrated circuit communicate with each other. Among the whole Matrix Creator's Verilog modules, there are two modules, which are relevant to receiving signals from 8 PDM microphones, i.e. ***wb_mic_array.v*** and ***bram.v***. The main part for reading microphone signals is inside ***wb_mic_array.v***. ***bram.v*** provides only the *"decimation ratio"* and *"microphone gain"* to ***wb_mic_array.v***.
 
 ![FPGA_File_Structure](Pictures/FPGA_File_Structure.png)
 </br><*A structure of FPGA code for PDM microphones*>
@@ -26,7 +26,7 @@ In order to create a test bench for reading and post-processing data **only** fr
 - PDM ratio: 50 (i.e. System clock frequency / PDM frequency)
 - Decimation ratio: 187 (i.e. PDM frequency / Output frequency)
 
-The frequency for reading signals from PDM microphone is set by *PDM_FILE_READ_CLOCK*.
+The frequency for reading signals from PDM microphone is set by ***PDM_FILE_READ_CLOCK***.
 ```verilog
 // Read time period: 2 was multiplied, since the one clock consists of two values, i.e. "one" and "zero"
 parameter [DATA_WIDTH-1:0] PDM_FILE_READ_CLOCK = $floor(PDM_RATIO+1)*2; 
@@ -59,7 +59,7 @@ end
 ```
 
 ### pdm_data
-*"pdm_data.v"* is the module for reading PDM microphone signals from an external ascii file. This external ascii file should have 8 binary digit in a single row and the maximum number of row should be under 150,000, which can be changed in [Mic_Array_TB.v](#mic_array_tb).
+*"pdm_data.v"* is the module for reading PDM microphone signals from an external ascii file. This external ascii file should have 8 binary digit in a single row and the maximum number of row should be under 150,000 and this maximum limit can be changed easily in [Mic_Array_TB.v](#mic_array_tb).
 
 ```verilog
 # Define a 2D array for saving 150_000 x 8 data from an external ascii file
@@ -87,7 +87,7 @@ initial
 </br><*1st zoomed-in Waveform in cic_sync.v*>
 
 
-***state[2:0]*** above is defined as follows and its changes over clocks. The main purpose of having those ***state*** is to control ***integrator_enable*** and ***read_enable*** better:
+***state[2:0]*** above is defined as follows and it changes over time. The main purpose of having those ***state*** is to control ***integrator_enable*** and ***read_enable*** better:
 
 ```verilog
 localparam [2:0] S_IDLE = 3'd0;
@@ -121,11 +121,11 @@ end
 
 
 ### cic
-*"cic.v"* is the module for performing [CIC filter](https://en.wikipedia.org/wiki/Cascaded_integrator%E2%80%93comb_filter). Its main four functiosn can be summarized as follows:
+*"cic.v"* is the module for performing [CIC filter](https://en.wikipedia.org/wiki/Cascaded_integrator%E2%80%93comb_filter). Its main four functions can be summarized as follows:
 
 1. Update PDM signal based on the ***"pdm_read_enable"***
 2. Convert the read binary ("0", "1") into ("-1", "1" in signed 23 bits, two's complement), respectively
-3. Perform ***3 times*** of [integrator](#cic_int) in cascade, according to the activated ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm). The 3 cascade of integrator was calculated by using generate-for loop.
+3. Perform ***3 times*** of [integrator](#cic_int) in cascade, according to the activated ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm). The 3 cascade of integrators was calculated by using ***generate-for loop***.
 ```verilog
 genvar i;
 generate
@@ -146,7 +146,7 @@ for (i=0; i<STAGES; i=i+1)
   end
 endgenerate
 ```
-4. Perform ***3 times*** of [comb filter](#cic_comb) in cascade, according to the activated ***"read_en & comb_enable"*** and ***"write_memory***, i.e. ***wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm).
+4. Perform ***3 times*** of [comb filter](#cic_comb) in cascade, according to the activated ***"read_en & comb_enable"*** and ***"write_memory***, i.e. ***wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm). The 3 cascade of comb-filters was calculated by using ***generate-for loop***.
 ```verilog
 genvar j;
 generate
@@ -169,7 +169,7 @@ endgenerate
 ```
 
 #### cic_op_fsm
-*"cic_op_fsm.v"* is the instantiated module under [cic.v](#cic), for controling the reading PDM microphone signals in each channel. ***state[2:0]*** in this module is defined as in the following Verilog codes and its changes over clocks can be displayed in the Waveform below:
+*"cic_op_fsm.v"* is the instantiated module under [cic.v](#cic), for controling the reading PDM microphone signals in each channel. ***state[2:0]*** in this module is defined as in the following Verilog codes and its change over time can be displayed in the following Waveform:
 ```verilog
 localparam [2:0] S_IDLE  = 3'd0;
 localparam [2:0] S_READ  = 3'd1;
@@ -180,7 +180,7 @@ localparam [2:0] S_STORE = 3'd2;
 
 
 #### cic_int
-*"cic_int.v"* is the instantiated module under [cic.v](#cic) and it acts as an integrator. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm).
+*"cic_int.v"* is the instantiated module under [cic.v](#cic) and it acts as an integrator. Its working principle is described in the diagram and in the attached Verilog code snippet. This module should be activated for each ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm).
 
 ![Integrator Filter in CIC](Pictures/Integrator_Filter.png)
 
@@ -212,7 +212,7 @@ end
 
 
 #### cic_comb
-*"cic_comb.v"* is the instantiated module under [cic.v](#cic) and it acts as a comb filter. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each ***"read_en & comb_enable"*** and ***"wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm).
+*"cic_comb.v"* is the instantiated module under [cic.v](#cic) and it acts as a comb filter. Its working principle is described in the diagram and in the attached Verilog code snippet. This module should be activated for each ***"read_en & comb_enable"*** and ***"wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm).
 
 
 ![Comb Filter in CIC](Pictures/Comb_Filter.png)
@@ -244,20 +244,17 @@ always @(posedge clk or posedge resetn) begin
 end
 ```
 
-
-### fir
-*"fir.v"* is the module for **.
-
-- 128 FIR TAB
-
-
-#### fir_pipe_fsm
-*"fir_pipe_fsm.v"* is the module for **.
+### mic_fir
+*"mic_fir.v"* is the module for TBD
 
 #### mic_array_buffer
-*"mic_array_buffer.v"* is the module for **.
+*"mic_array_buffer.v"* is the instantiated module under [mic_fir.v](#mic_fir)
+TBD
 
+#### fir_pipe_fsm
+*"fir_pipe_fsm.v"* is the instantiated module under [mic_fir.v](#mic_fir)
+TBD
 
-## Open points
-- TBD
+## Validation example
+One sine wave containing the four ....TBD
 
