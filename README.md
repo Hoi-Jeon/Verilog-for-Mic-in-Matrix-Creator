@@ -123,10 +123,10 @@ end
 ### cic
 *"cic.v"* is the module for performing [CIC filter](https://en.wikipedia.org/wiki/Cascaded_integrator%E2%80%93comb_filter). Its main four functiosn can be summarized as follows:
 
-1. Update PDM signal based on the ***pdm_read_enable***
-2. Convert the read binary ("0", "1") into ("-1", "1" in signed 23 bits, two's complement)
-3. Perform ***3 times*** of [integrator](#cic_int), according to the activated ***read_en*** and ***wr_en***
-4. Perform ***3 times*** of [comb filter](#cic_comb), according to the activated ***read_en & comb_enable*** and ***wr_en & comb_enable***
+1. Update PDM signal based on the ***"pdm_read_enable"***
+2. Convert the read binary ("0", "1") into ("-1", "1" in signed 23 bits, two's complement), respectively
+3. Perform ***3 times*** of [integrator](#cic_int), according to the activated ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm)
+4. Perform ***3 times*** of [comb filter](#cic_comb), according to the activated ***"read_en & comb_enable"*** and ***"wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm)
 
 
 #### cic_op_fsm
@@ -141,7 +141,7 @@ localparam [2:0] S_STORE = 3'd2;
 
 
 #### cic_int
-*cic_int.v* is the instantiated module under [cic.v](#cic) and it acts as an integrator. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each **read_en** in [cic_sync.v](#cic_sync).
+*"cic_int.v"* is the instantiated module under [cic.v](#cic) and it acts as an integrator. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each **read_en** in [cic_sync.v](#cic_sync).
 
 ![Integrator Filter in CIC](Pictures/Integrator_Filter.png)
 
@@ -173,7 +173,7 @@ end
 
 
 #### cic_comb
-*cic_comb.v* is the instantiated module under [cic.v](#cic) and it acts as a comb filter. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each **read_en** & **comb_enable** in [cic_sync.v](#cic_sync).
+*"cic_comb.v"* is the instantiated module under [cic.v](#cic) and it acts as a comb filter. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each **read_en** & **comb_enable** in [cic_sync.v](#cic_sync).
 
 
 ![Comb Filter in CIC](Pictures/Comb_Filter.png)
@@ -207,18 +207,16 @@ end
 
 
 ### fir
-*fir.v* is the module for **.
+*"fir.v"* is the module for **.
 
-- Filter information
-  - 128 FIR TAB
-  - 3 stages CIC
-  - General information
+- 128 FIR TAB
+
 
 #### fir_pipe_fsm
-*fir_pipe_fsm.v* is the module for **.
+*"fir_pipe_fsm.v"* is the module for **.
 
 #### mic_array_buffer
-*mic_array_buffer.v* is the module for **.
+*"mic_array_buffer.v"* is the module for **.
 
 
 ## Open points
