@@ -125,9 +125,48 @@ end
 
 1. Update PDM signal based on the ***"pdm_read_enable"***
 2. Convert the read binary ("0", "1") into ("-1", "1" in signed 23 bits, two's complement), respectively
-3. Perform ***3 times*** of [integrator](#cic_int) in cascade, according to the activated ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm)
-4. Perform ***3 times*** of [comb filter](#cic_comb) in cascade, according to the activated ***"read_en & comb_enable"*** and ***"wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm)
-
+3. Perform ***3 times*** of [integrator](#cic_int) in cascade, according to the activated ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm). The 3 cascade of integrator was calculated by using generate-for loop.
+```verilog
+genvar i;
+generate
+for (i=0; i<STAGES; i=i+1)
+  begin: int_stage
+    cic_int #(
+      .WIDTH   	(WIDTH),        // 23
+      .CHANNELS	(CHANNELS)      // 8
+      ) int0 (
+      .clk     	(clk),          // input
+      .resetn  	(resetn),       // input
+      .wr_en   	(wr_en),        // input
+      .read_en 	(read_en),      // input
+      .channel 	(channel),      // input [2:0]
+      .data_in 	(data_int[i]),  // input signed [22:0]
+      .data_out	(data_int[i+1])	// output reg signed [22:0]
+    );
+  end
+endgenerate
+```
+4. Perform ***3 times*** of [comb filter](#cic_comb) in cascade, according to the activated ***"read_en & comb_enable"*** and ***"write_memory***, i.e. ***wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm).
+```verilog
+genvar j;
+generate
+for (j=0; j<STAGES; j=j+1)
+  begin: comb_stage
+    cic_comb #(
+    .WIDTH    (WIDTH),                  // 23
+    .CHANNELS (CHANNELS)                // 8
+    ) comb0 (
+    .clk      (clk),                    // input
+    .resetn   (resetn),                 // input
+    .read_en  (read_en & comb_enable),  // input, because "comb filter should be executed for each "Decimation ratio"
+    .wr_en    (write_memory),           // input
+    .channel  (channel),                // input [2:0]
+    .data_in  (data_comb[j]),           // input signed [22:0]
+    .data_out (data_comb[j+1])          // output reg signed [22:0]
+    );
+  end
+endgenerate
+```
 
 #### cic_op_fsm
 *"cic_op_fsm.v"* is the instantiated module under [cic.v](#cic), for controling the reading PDM microphone signals in each channel. ***state[2:0]*** in this module is defined as in the following Verilog codes and its changes over clocks can be displayed in the Waveform below:
@@ -141,7 +180,7 @@ localparam [2:0] S_STORE = 3'd2;
 
 
 #### cic_int
-*"cic_int.v"* is the instantiated module under [cic.v](#cic) and it acts as an integrator. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each **read_en** in [cic_sync.v](#cic_sync).
+*"cic_int.v"* is the instantiated module under [cic.v](#cic) and it acts as an integrator. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each ***"read_en"*** and ***"wr_en"*** in [cic_op_fsm.v](#cic_op_fsm).
 
 ![Integrator Filter in CIC](Pictures/Integrator_Filter.png)
 
@@ -173,7 +212,7 @@ end
 
 
 #### cic_comb
-*"cic_comb.v"* is the instantiated module under [cic.v](#cic) and it acts as a comb filter. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each **read_en** & **comb_enable** in [cic_sync.v](#cic_sync).
+*"cic_comb.v"* is the instantiated module under [cic.v](#cic) and it acts as a comb filter. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each ***"read_en & comb_enable"*** and ***"wr_en & comb_enable"*** in [cic_op_fsm.v](#cic_op_fsm).
 
 
 ![Comb Filter in CIC](Pictures/Comb_Filter.png)
