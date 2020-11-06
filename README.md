@@ -74,7 +74,11 @@ initial
 ```
 
 ### cic_sync
-*"cic_sync.v"* is the module for **.
+*"cic_sync.v"* is the module for controlling the following outputs:
+- **pdm_clk** is one bit *reg* having a positive edge, when a new PDM signal is available
+- **read_enableis** one bit *reg* being *true*, when a new PDM signal is ready to be read
+- **integrator_enable** is one bit *reg* being *true*, while 1~8 PDM signals are being read
+- **com_enable** is one bit *reg* being *true*, in every decimation during one period of **pdm_clk**
 
 ### cic
 *"cic.v"* is the module for **.
