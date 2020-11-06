@@ -38,7 +38,7 @@ begin
 end
 ```
 
-The ascii file for saving the ouput of test bench is opened/written/closed in this main module. Please be ware that one can start receiving the test bench outputs only after the first number of time steps reaches the size FIR filter coeffcient.
+The ascii file for saving the ouput of test bench is opened/written/closed in this main module. Please be aware that one can start receiving the test bench outputs only after the first number of time steps reaches the size FIR filter coeffcient.
 ```verilog
 integer fd;
 fd = $fopen("location of output ascii file", "w");
@@ -78,7 +78,7 @@ initial
 - **pdm_clk** is one bit *reg* having a positive edge, when a new PDM signal is available
 - **read_enable** is one bit *reg* being *true*, when a new PDM signal is ready to be read
 - **integrator_enable** is one bit *reg* being *true*, while 1~8 PDM signals are being read
-- **com_enable** is one bit *reg* being *true*, in every decimation during one period of **pdm_clk**
+- **comb_enable** is one bit *reg* being *true*, in every decimation during one period of **pdm_clk**
 
 ![cic_sync_1](Pictures/cic_sync_1.png)
 </br><*Waveform in cic_sync.v*>
@@ -86,8 +86,19 @@ initial
 ![cic_sync_2](Pictures/cic_sync_2.png)
 </br><*1st zoomed-in Waveform in cic_sync.v*>
 
+
+***state[2:0]*** above is defined as follows and its changes over clocks can be displayed below:
+
+```verilog
+localparam [2:0] S_IDLE = 3'd0;
+localparam [2:0] S_READING_TIME	= 3'd1;
+localparam [2:0] S_COMPUTE = 3'd2;
+localparam [2:0] S_HOLD = 3'd3;
+```
+
 ![cic_sync_3](Pictures/cic_sync_3.png)
 </br><*2nd zoomed-in Waveform in cic_sync.v*>
+
 
 
 ### cic
@@ -95,16 +106,28 @@ initial
 
 
 
-#### cic_op_fsm
-*"cic_op_fsm.v"* is the instantiated module under [cic.v](#cic), for controling the reading PDM microphone signals in each channel.
+```verilog
 
+```
+
+```verilog
+
+```
+
+
+#### cic_op_fsm
+*"cic_op_fsm.v"* is the instantiated module under [cic.v](#cic), for controling the reading PDM microphone signals in each channel. ***state[2:0]*** in this module is defined as in the following Verilog codes and its changes over clocks can be displayed in the Waveform below:
+```verilog
+localparam [2:0] S_IDLE  = 3'd0;
+localparam [2:0] S_READ  = 3'd1;
+localparam [2:0] S_STORE = 3'd2;
+```
 ![cic_op_fsm_1](Pictures/cic_op_fsm_1.png)
 </br><*Waveform in cic_op_fsm.v*>
 
 
-
 #### cic_int
-*cic_int.v* is the instantiated module under [cic.v](#cic), for integrator stages
+*cic_int.v* is the instantiated module under [cic.v](#cic) and it acts as an integrator. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each **read_en** in [cic_sync.v](#cic_sync).
 
 ![Integrator Filter in CIC](Pictures/Integrator_Filter.png)
 
@@ -135,8 +158,11 @@ end
 ```
 
 
+
+
+
 #### cic_comb
-*cic_comb.v* is the module for **.
+*cic_comb.v* is the instantiated module under [cic.v](#cic) and it acts as a comb filter. Its working principle is described in the diagram and short Verilog codes. This module should be activated for each **read_en** & **comb_enable** in [cic_sync.v](#cic_sync).
 
 
 ![Comb Filter in CIC](Pictures/Comb_Filter.png)
