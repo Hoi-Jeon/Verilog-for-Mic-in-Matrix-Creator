@@ -12,7 +12,7 @@ Matrix creator uses the Wishbone Bus to communicate between RPi and several sens
 
 ## Test bench of FPGA code for PDM microphones
 
-In order to create a test bench for reading and post-processing data **only** from 8 PDM microphones, some parts of the above full FPGA strucutre were selected and modified. Its Hierarchy in *Xilinx ISE Deisng Suite* is shown below:
+In order to create a test bench for reading and post-processing data **only** from 8 PDM microphones, some parts of the above full FPGA strucutre were selected and modified. Its Hierarchy in ***Xilinx ISE Design Suite*** is shown below:
 
 ![TestBench_Structure](Pictures/FPGA_TestBench_Structure.png)
 </br><*A structure of Test Bench for PDM microphones*>
@@ -59,7 +59,7 @@ end
 ```
 
 ### pdm_data
-*"pdm_data.v"* is the module for reading PDM microphone signals from an external ascii file. This external ascii file shoudl have 8 binary digit in a single row and the maximum number of row should be under 150,000, which can be changed in [Mic_Array_TB.v](#mic_array_tb).
+*"pdm_data.v"* is the module for reading PDM microphone signals from an external ascii file. This external ascii file should have 8 binary digit in a single row and the maximum number of row should be under 150,000, which can be changed in [Mic_Array_TB.v](#mic_array_tb).
 
 ```verilog
 # Define a 2D array for saving 150_000 x 8 data from an external ascii file
@@ -76,28 +76,35 @@ initial
 ### cic_sync
 *"cic_sync.v"* is the module for controlling the following outputs:
 - **pdm_clk** is one bit *reg* having a positive edge, when a new PDM signal is available
-- **read_enableis** one bit *reg* being *true*, when a new PDM signal is ready to be read
+- **read_enable** is one bit *reg* being *true*, when a new PDM signal is ready to be read
 - **integrator_enable** is one bit *reg* being *true*, while 1~8 PDM signals are being read
 - **com_enable** is one bit *reg* being *true*, in every decimation during one period of **pdm_clk**
 
 ![cic_sync_1](Pictures/cic_sync_1.png)
-</br><*Waveform in cic_syn.c*>
+</br><*Waveform in cic_sync.v*>
 
 ![cic_sync_2](Pictures/cic_sync_2.png)
-</br><*1st zoomed-in Waveform in cic_syn.c*>
+</br><*1st zoomed-in Waveform in cic_sync.v*>
 
 ![cic_sync_3](Pictures/cic_sync_3.png)
-</br><*2nd zoomed-in Waveform in cic_syn.c*>
+</br><*2nd zoomed-in Waveform in cic_sync.v*>
 
 
 ### cic
-*"cic.v"* is the module for **.
+*"cic.v"* is the module for performing [CIC filter](https://en.wikipedia.org/wiki/Cascaded_integrator%E2%80%93comb_filter).
+
+
 
 #### cic_op_fsm
-*"cic_op_fsm.v"* is the module for **.
+*"cic_op_fsm.v"* is the instantiated module under [cic.v](#cic), for controling the reading PDM microphone signals in each channel.
+
+![cic_op_fsm_1](Pictures/cic_op_fsm_1.png)
+</br><*Waveform in cic_op_fsm.v*>
+
+
 
 #### cic_int
-*cic_int.v* is the module for **.
+*cic_int.v* is the instantiated module under [cic.v](#cic), for integrator stages
 
 ![Integrator Filter in CIC](Pictures/Integrator_Filter.png)
 
