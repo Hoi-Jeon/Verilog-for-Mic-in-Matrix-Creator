@@ -87,13 +87,32 @@ initial
 </br><*1st zoomed-in Waveform in cic_sync.v*>
 
 
-***state[2:0]*** above is defined as follows and its changes over clocks can be displayed below:
+***state[2:0]*** above is defined as follows and its changes over clocks. The main purpose of having those ***state*** is to control ***integrator_enable*** and ***read_enable*** better:
 
 ```verilog
 localparam [2:0] S_IDLE = 3'd0;
 localparam [2:0] S_READING_TIME	= 3'd1;
 localparam [2:0] S_COMPUTE = 3'd2;
 localparam [2:0] S_HOLD = 3'd3;
+
+always @(state) begin
+  case(state)
+  S_IDLE :
+  {integrator_enable,read_enable} = {1'b0,1'b0};
+
+  S_READING_TIME :
+  {integrator_enable,read_enable}= {1'b0,1'b1};
+
+  S_COMPUTE :
+  {integrator_enable,read_enable} = {1'b1,1'b0};
+
+  S_HOLD :
+  {integrator_enable,read_enable} = {1'b1,1'b0};
+
+  default :
+  {integrator_enable,read_enable} = {1'b0,1'b0};
+  endcase
+end
 ```
 
 ![cic_sync_3](Pictures/cic_sync_3.png)
@@ -138,20 +157,20 @@ always @(posedge clk or posedge resetn) begin
   if (resetn)
     data_out <= 0;
   else begin
-  case({read_en,wr_en})
-    2'b10 : 
-      begin
-        data_out <= accumulator[channel];
-      end
+    case({read_en,wr_en})
+      2'b10 : 
+        begin
+          data_out <= accumulator[channel];
+        end
 
-    2'b01 : 
-      begin
-        accumulator[channel] <= sum;
-        data_out <= data_out; 
-      end
+      2'b01 : 
+        begin
+          accumulator[channel] <= sum;
+          data_out <= data_out; 
+        end
 
-    default :
-      data_out <= data_out;
+      default :
+        data_out <= data_out;
     endcase
   end
 end
@@ -171,7 +190,7 @@ end
 assign diff = data_in - prev;
 
 always @(posedge clk or posedge resetn) begin
-    if (resetn) begin
+  if (resetn) begin
     data_out <= 0;
     prev     <= 0;
   end
