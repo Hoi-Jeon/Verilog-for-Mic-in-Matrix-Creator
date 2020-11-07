@@ -245,16 +245,118 @@ end
 ```
 
 ### mic_fir
-*"mic_fir.v"* is the module for TBD
-
-#### mic_array_buffer
-*"mic_array_buffer.v"* is the instantiated module under [mic_fir.v](#mic_fir)
-TBD
+*"mic_fir.v"* is the module for performing FIR filter to the ouput of [CIC filter](#cic). This test bench uses the total 128 FIR filter coefficients, which were imported from the routine [fir_data.v](#fir_data).
 
 #### fir_pipe_fsm
-*"fir_pipe_fsm.v"* is the instantiated module under [mic_fir.v](#mic_fir)
-TBD
+*"fir_pipe_fsm.v"* is the instantiated module under [mic_fir.v](#mic_fir), for controling the counters in the FIR filter. 
+
+##### Input / fir_pipe_fsm
+- end_write_data, which becomes true, when receving the last channel data from comb-filter.
+```verilog
+//  "end_write_data" becomes true, only with the last channel & true "data_load"
+assign end_write_data = (&channel) & data_load;
+```
+
+##### Output / fir_pipe_fsm
+- tap_count (coeff_addr): 7 bit counter, which can count max. up to 128 [0, 127]. It is the output of [mic_fir.v](#mic_fir), which call the FIR coefficient array, whos index is equal to this counter.
+- channel_count: 3 bit counter for counting the number of channel. It is important to understand that it increases by one when ***tap_count*** finishes one loop (128).
+- load_data_memory: it gets "true", during ***tap_count** increases.
+- reset_tap: it gets "true", during ***tap_count**  starts.
+- write_data: it gets "true", during ***channel_count*** increases
+
+![fir_pipe_fsm_1](Pictures/fir_pipe_fsm_1.png)
+</br><*Waveform in fir_pipe_fsm*>
+
+![fir_pipe_fsm_2](Pictures/fir_pipe_fsm_2.png)
+</br><*A begin of Waveform in fir_pipe_fsm*>
+
+![fir_pipe_fsm_3](Pictures/fir_pipe_fsm_3.png)
+</br><*A channel transition in Waveform in fir_pipe_fsm*>
+
+![fir_pipe_fsm_4](Pictures/fir_pipe_fsm_4.png)
+</br><*An end of Waveform in fir_pipe_fsm*>
+
+state[2:0] above is defined as follows and it changes over time. The main purpose of having those state is to control ***count_en (=write_data)***, ***reset_tap***,***reset_channel***,***load_data_memory***:
+
+```verilog
+localparam [1:0] S_IDLE = 3'd0;
+localparam [1:0] S_PIPE = 3'd1;
+localparam [1:0] S_NEXT = 3'd2;
+
+always @(state) begin
+	case(state)
+	S_IDLE : begin
+		count_en         = 0;
+		reset_tap        = 1;
+		reset_channel    = 1;
+		load_data_memory = 0;
+		end
+	S_PIPE : begin
+		count_en         = 0;
+		reset_tap        = 0;
+		reset_channel    = 0;
+		load_data_memory = 1;
+		end
+	S_NEXT : begin
+		count_en         = 1;
+		reset_tap        = 1;
+		reset_channel    = 0;
+		load_data_memory = 0;
+		end
+	default : begin
+		count_en         = 0;
+		reset_tap        = 1;
+		reset_channel    = 1;
+		load_data_memory = 0;
+		end
+	endcase
+end
+```
+
+#### mic_fir
+"wr_data_addr" increases, as "write_memory" is from the output of CIC filter
+"wr_data_addr" =  (7 bits for 128 FIR filter elements) + (3 bits for channels)
+
+// Pipe line stage 1
+
+always @(posedge clk or posedge  resetn) begin
+if(resetn) begin
+reset_tap_p1  <= 0;
+write_data_p1 <= 0;
+end else begin
+reset_tap_p1  <= reset_tap;
+write_data_p1 <= write_data;
+end
+end
+
+// "factor_wire" is [16+16-1:0], because it should have max. 16 bit x 16 bit
+assign factor_wire = data_reg_a * data_reg_b;
+
+// Pipe line stage 2
+write_data_p2	<= write_data_p1;
+data_reg_c	<= { factor_wire[(FIR_TAP_WIDTH+DATA_WIDTH)-1], 										// [(16+16)-1]
+factor_wire[(FIR_TAP_WIDTH+DATA_WIDTH)-3:FIR_TAP_WIDTH-1] };		// [(16+16)-3 : 16-1]
+// Question: why factor_wire[30] should be removed?
+// Answer: 16 bit x 16 bit gives always "zero" at "MSB - 1" bit, so this bit is removed to improve the accuracy
+reset_tap_p2  <= reset_tap_p1;
+
+// Pipe line stage 3
+always @(posedge clk or posedge  resetn) begin
+if(resetn | reset_tap_p2) begin
+data_reg_d <= 0;
+end else begin
+// Question: Why "data_reg_d" and "data_reg_c" should be added?
+// Answer: this is the summation of FIR filter, i.e. convolution
+data_reg_d <= (data_reg_d + data_reg_c);
+end
+end
+
+assign data_out				= data_reg_d;
+assign write_data_mem	= write_data_p2;
+
+#### mic_array_buffer
+*"mic_array_buffer.v"* is the instantiated module under [mic_fir.v](#mic_fir). This buffer is for saving and reading the input microphone signal from comb-filter to FIR filter. It is important to understand a sturucture of this module, since *"mic_array_buffer.v"* is ofent used as data buffer at several locations of matrix creator's FPGA codes.
+
 
 ## Validation example
 One sine wave containing the four ....TBD
-
