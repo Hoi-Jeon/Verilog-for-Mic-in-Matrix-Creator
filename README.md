@@ -250,19 +250,19 @@ end
 #### fir_pipe_fsm
 *"fir_pipe_fsm.v"* is the instantiated module under [mic_fir.v](#mic_fir), for controling the counters in the FIR filter. 
 
-##### Input / fir_pipe_fsm
-- end_write_data, which becomes true, when receving the last channel data from comb-filter.
+##### fir_pipe_fsm / Input
+- ***end_write_data***, which becomes true, when receving the last channel data from comb-filter.
 ```verilog
 //  "end_write_data" becomes true, only with the last channel & true "data_load"
 assign end_write_data = (&channel) & data_load;
 ```
 
-##### Output / fir_pipe_fsm
-- tap_count (coeff_addr): 7 bit counter, which can count max. up to 128 [0, 127]. It is the output of [mic_fir.v](#mic_fir), which call the FIR coefficient array, whos index is equal to this counter.
-- channel_count: 3 bit counter for counting the number of channel. It is important to understand that it increases by one when ***tap_count*** finishes one loop (128).
-- load_data_memory: it gets "true", during ***tap_count** increases.
-- reset_tap: it gets "true", during ***tap_count**  starts.
-- write_data: it gets "true", during ***channel_count*** increases
+##### fir_pipe_fsm / Outputs
+- ***tap_count (coeff_addr)***: 7 bit counter, which can count max. up to 128 [0, 127]. It is the output of [mic_fir.v](#mic_fir), which call the FIR coefficient array, whos index is equal to this counter.
+- ***channel_count***: 3 bit counter for counting the number of channel. It is important to understand that it increases by one when ***tap_count*** finishes one loop (128).
+- ***load_data_memory***: it gets "true", during ***tap_count*** increases.
+- ***reset_tap***: it gets "true", during ***tap_count***  starts.
+- ***write_data***: it gets "true", during ***channel_count*** increases
 
 ![fir_pipe_fsm_1](Pictures/fir_pipe_fsm_1.png)
 </br><*Waveform in fir_pipe_fsm*>
