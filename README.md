@@ -286,33 +286,30 @@ localparam [1:0] S_NEXT = 3'd2;
 
 ```verilog
 always @(posedge clk or posedge resetn) begin
-	if(resetn)
-		state <= S_IDLE;
-	else begin
-		case(state)
-		S_IDLE : begin
-			if(end_write_data)
-				state <= S_PIPE;
-			else
-				state <= S_IDLE;
-				end
-
-		S_PIPE :
-			if(tap_count == FIR_TAP-1) // PipeLine stages
-				state <= S_NEXT;
-			else
-				state <= S_PIPE;
-
-		S_NEXT :
-			if(channel_count == CHANNELS-1)
-				state <= S_IDLE;
-			else
-				state <= S_PIPE;
-
-		default :
-			state <= S_IDLE;
-		endcase 
-	end // if else
+  if(resetn)
+    state <= S_IDLE;
+  else begin
+    case(state)
+    S_IDLE : begin
+      if(end_write_data)
+        state <= S_PIPE;
+      else
+        state <= S_IDLE;
+      end
+    S_PIPE :
+      if(tap_count == FIR_TAP-1) // PipeLine stages
+        state <= S_NEXT;
+      else
+        state <= S_PIPE;
+    S_NEXT :
+      if(channel_count == CHANNELS-1)
+        state <= S_IDLE;
+      else
+        state <= S_PIPE;
+    default :
+      state <= S_IDLE;
+    endcase 
+  end // if else
 end // always
 ```
 
