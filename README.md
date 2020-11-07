@@ -282,7 +282,9 @@ state[2:0] above is defined as follows and it changes over time. The main purpos
 localparam [1:0] S_IDLE = 3'd0;
 localparam [1:0] S_PIPE = 3'd1;
 localparam [1:0] S_NEXT = 3'd2;
+```
 
+```verilog
 always @(posedge clk or posedge resetn) begin
 	if(resetn)
 		state <= S_IDLE;
@@ -293,7 +295,7 @@ always @(posedge clk or posedge resetn) begin
 				state <= S_PIPE;
 			else
 				state <= S_IDLE;
-			end
+				end
 
 		S_PIPE :
 			if(tap_count == FIR_TAP-1) // PipeLine stages
