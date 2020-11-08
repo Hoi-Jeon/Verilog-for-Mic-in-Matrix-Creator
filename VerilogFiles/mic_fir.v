@@ -14,7 +14,7 @@ module mic_fir #(
 	input  signed [DATA_WIDTH-1:0]		data_in,					// 16
 	output signed [DATA_WIDTH-1:0]		data_out,					// 16
 	output								write_data_mem,
-	// FIR Coeff	
+	// FIR Coeff
 	output [FIR_TAP_ADDR-1:0] 			coeff_addr,					// 7
 	input signed [FIR_TAP_WIDTH-1:0]	coeff_data					// 16
 );
@@ -94,10 +94,9 @@ wire [6:0] read_pointer_2nd;
 assign read_pointer_2nd = wr_data_addr[FIR_MEM_DATA_ADDR-1:CHANNELS_WIDTH];	
 	
 // "coeff_addr" and "wr_data_addr" should be added for "read_pointer" and it works like a "ring buffer"
-// - coeff_addr = tab_count
+// - coeff_addr [6:0] = tab_count
 // - wr_data_addr[FIR_MEM_DATA_ADDR-1:CHANNELS_WIDTH] increases when new data are read
-assign read_pointer = coeff_addr // [6:0]
-										+ wr_data_addr[FIR_MEM_DATA_ADDR-1:CHANNELS_WIDTH] - 1; // wr_data_addr [9:3] - 1 
+assign read_pointer = coeff_addr + wr_data_addr[FIR_MEM_DATA_ADDR-1:CHANNELS_WIDTH] - 1; // wr_data_addr [9:3] - 1 
 
 // "pipe_channel" has [2:0], i.e. 2**3 = 8 wires
 // "read_pointer" has [6:0], i.e. 2**7 = 128 wires
