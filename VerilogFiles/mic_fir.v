@@ -86,13 +86,18 @@ assign data_reg_a = coeff_data;
 // "read_pointer"is [6:0] = [(10-3-1):0], here "3" is subtracted for channel and "1" is subtracted due to the zero index
 wire [(FIR_MEM_DATA_ADDR-CHANNELS_WIDTH-1):0] read_pointer;
 
+// "read_pointer_1st" & "read_pointer_2nd" are two variables for debugging
+wire [6:0] read_pointer_1st;
+assign read_pointer_1st = coeff_addr;
 
-// "read_pointer" 
-// "coeff_addr" and "wr_data_addr" should be added for "read_pointer"? perhaps like a "ring buffer"?
-//	output [FIR_TAP_ADDR-1:0] [6:0]	coeff_addr
-//	reg [FIR_MEM_DATA_ADDR-1:0] [9:0]	wr_data_addr;
+wire [6:0] read_pointer_2nd;
+assign read_pointer_2nd = wr_data_addr[FIR_MEM_DATA_ADDR-1:CHANNELS_WIDTH];	
+	
+// "coeff_addr" and "wr_data_addr" should be added for "read_pointer" and it works like a "ring buffer"
+// - coeff_addr = tab_count
+// - wr_data_addr[FIR_MEM_DATA_ADDR-1:CHANNELS_WIDTH] increases when new data are read
 assign read_pointer = coeff_addr // [6:0]
-					+ wr_data_addr[FIR_MEM_DATA_ADDR-1:CHANNELS_WIDTH] - 1; // wr_data_addr [9:3] - 1 
+										+ wr_data_addr[FIR_MEM_DATA_ADDR-1:CHANNELS_WIDTH] - 1; // wr_data_addr [9:3] - 1 
 
 // "pipe_channel" has [2:0], i.e. 2**3 = 8 wires
 // "read_pointer" has [6:0], i.e. 2**7 = 128 wires
