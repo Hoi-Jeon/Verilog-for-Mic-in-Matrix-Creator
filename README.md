@@ -397,6 +397,13 @@ end
 #### mic_array_buffer
 *"mic_array_buffer.v"* is the instantiated module under [mic_fir.v](#mic_fir). This buffer is for saving and reading the input microphone signal from comb-filter to FIR filter. It is important to understand a sturucture of this module, since *"mic_array_buffer.v"* is ofent used as data buffer at several locations of matrix creator's FPGA codes.
 
-
 ## Validation example
-One sine wave containing the four ....TBD
+### Input
+PDM signal having 40, 400, 4000 Hz sine wave </br>
+
+### Output
+Test bench results with 16kHz FIR filter coefficient of Matrix Creator</br>
+-40 Hz component cannot be seen, due to the applied FIR filter characteristics
+
+![mic_fir_5](Pictures/Validation_TestBench.png)
+</br><*Comparing input and output signals of Verilog Test Bench*>
