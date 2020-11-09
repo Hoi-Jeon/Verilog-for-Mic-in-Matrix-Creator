@@ -315,46 +315,82 @@ always @(state) begin
 end
 ```
 
-#### mic_fir
-"wr_data_addr" increases, as "write_memory" is from the output of CIC filter
-"wr_data_addr" =  (7 bits for 128 FIR filter elements) + (3 bits for channels)
+#### mic_fir_main_codes
+Whenever ***write_memory*** is read from the output of CIC filter, ***wr_data_addr*** increases and it is defines as  (7 bits for 128 FIR filter elements) + (3 bits for channels). However, this value is renamed as ***wr_addr_deinterlaced*** when storing in data buffer and its stucture is slightly changed as follows: (3 bits for channels) + (7 bits for 128 FIR filter elements).
 
-// Pipe line stage 1
+##### Pipe line stage 1
+In the stage 1, FIR filter coefficients and microphone data from the data buffer are multiplied with each other. Here, it is very important to understand how ***read_pointer***, since it is the key pointer, which enables the following multiplication between FIR filter coefficient and microphone data from the data buffer:
 
-always @(posedge clk or posedge  resetn) begin
-if(resetn) begin
-reset_tap_p1  <= 0;
-write_data_p1 <= 0;
-end else begin
-reset_tap_p1  <= reset_tap;
-write_data_p1 <= write_data;
-end
-end
+[0, 1, 2, ..., 126, 127]: FIR filter coefficients, which should be multiplied by the following microphone data, sequentially.
+
+[0, 1, 2, ..., 126, 127]: microphone data at t=t0
+[1, 2, 3, ..., 127,   0]: microphone data at t=t1
+[2, 3, 4, ...,   0,   1]: microphone data at t=t2
+
+```verilog
+assign data_reg_a = coeff_data;
+assign read_pointer = coeff_addr + wr_data_addr[FIR_MEM_DATA_ADDR-1:CHANNELS_WIDTH] - 1; 
+assign data_memory_addr = {pipe_channel, read_pointer};
+
+//Data Memory
+mic_array_buffer #(
+	.ADDR_WIDTH	(FIR_MEM_DATA_ADDR),	// 10
+	.DATA_WIDTH	(DATA_WIDTH)		// 16
+) mic_fir_data0 (
+	// write port a
+	.clk_a		(clk),
+	.we_a 		(data_load),
+	.adr_a		(wr_addr_deinterlaced),
+	.dat_a		(data_in),
+
+	// read port b
+	.clk_b		(clk),
+	.adr_b		(data_memory_addr),
+	.en_b 		(load_data_memory), // output reg,	"true" during "tap_count" increases
+	.dat_b		(data_reg_b)
+);
 
 // "factor_wire" is [16+16-1:0], because it should have max. 16 bit x 16 bit
 assign factor_wire = data_reg_a * data_reg_b;
+```
+Its working principle can be clear easily by understanding the following waveforms.
+![mic_fir_1](Pictures/mic_fir_1.png)
+</br><*Waveform in mic_fir: a start of the 1st time block for the microphone #1*>
 
-// Pipe line stage 2
+![mic_fir_2](Pictures/mic_fir_2.png)
+</br><*Waveform in mic_fir: an end of the 1st time block for the microphone #1*>
+
+![mic_fir_3](Pictures/mic_fir_3.png)
+</br><*Waveform in mic_fir: a start of the 2nd time block for the microphone #1*>
+
+![mic_fir_4](Pictures/mic_fir_4.png)
+</br><*Waveform in mic_fir: an end of the 2nd time block for the microphone #1*>
+
+##### Pipe line stage 2
+The pipe line stage 2 is just removing the digit at "MSB - 1", in order to improve the accuracy of FIR filter calculation.
+```verilog
 write_data_p2	<= write_data_p1;
-data_reg_c	<= { factor_wire[(FIR_TAP_WIDTH+DATA_WIDTH)-1], 										// [(16+16)-1]
-factor_wire[(FIR_TAP_WIDTH+DATA_WIDTH)-3:FIR_TAP_WIDTH-1] };		// [(16+16)-3 : 16-1]
-// Question: why factor_wire[30] should be removed?
-// Answer: 16 bit x 16 bit gives always "zero" at "MSB - 1" bit, so this bit is removed to improve the accuracy
+data_reg_c	<= { factor_wire[(FIR_TAP_WIDTH+DATA_WIDTH)-1], // [(16+16)-1]
+factor_wire[(FIR_TAP_WIDTH+DATA_WIDTH)-3:FIR_TAP_WIDTH-1] }; // [(16+16)-3 : 16-1]
+// 16 bit x 16 bit gives always "zero" at "MSB - 1" bit, so this bit is removed to improve the accuracy
 reset_tap_p2  <= reset_tap_p1;
+```
 
-// Pipe line stage 3
+##### Pipe line stage 3
+For each microphone channel, the pipe line stage 3 summs the product of FIR filter coefficients and microphone data in the stage 1, as in the definition of convolution. 
+```verilog
 always @(posedge clk or posedge  resetn) begin
-if(resetn | reset_tap_p2) begin
-data_reg_d <= 0;
-end else begin
-// Question: Why "data_reg_d" and "data_reg_c" should be added?
-// Answer: this is the summation of FIR filter, i.e. convolution
-data_reg_d <= (data_reg_d + data_reg_c);
+  if(resetn | reset_tap_p2) begin
+    data_reg_d <= 0;
+  end else begin
+    // This is the summation of FIR filter, i.e. convolution
+    data_reg_d <= (data_reg_d + data_reg_c);
+  end
 end
-end
+```
 
-assign data_out				= data_reg_d;
-assign write_data_mem	= write_data_p2;
+![mic_fir_5](Pictures/mic_fir_5.png)
+</br><*Waveform in mic_fir: one whole block for FIR filtering*>
 
 #### mic_array_buffer
 *"mic_array_buffer.v"* is the instantiated module under [mic_fir.v](#mic_fir). This buffer is for saving and reading the input microphone signal from comb-filter to FIR filter. It is important to understand a sturucture of this module, since *"mic_array_buffer.v"* is ofent used as data buffer at several locations of matrix creator's FPGA codes.
