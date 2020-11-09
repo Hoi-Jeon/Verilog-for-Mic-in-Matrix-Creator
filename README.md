@@ -399,11 +399,11 @@ end
 
 ## Validation example
 ### Input
-PDM signal having 40, 400, 4000 Hz sine wave </br>
+Apporx. 50 ms time length - PDM signal having 40, 400, 4000 Hz sine wave  </br>
 
 ### Output
 Test bench results with 16kHz FIR filter coefficient of Matrix Creator</br>
--40 Hz component cannot be seen, due to the applied FIR filter characteristics
+*40 Hz component cannot be seen, due to the applied FIR filter characteristics
 
 ![mic_fir_5](Pictures/Validation_TestBench.png)
 </br><*Comparing input and output signals of Verilog Test Bench*>
