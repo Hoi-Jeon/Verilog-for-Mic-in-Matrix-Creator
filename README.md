@@ -321,11 +321,13 @@ Whenever ***write_memory*** is read from the output of CIC filter, ***wr_data_ad
 ##### Pipe line stage 1
 In the stage 1, FIR filter coefficients and microphone data from the data buffer are multiplied with each other. Here, it is very important to understand how ***read_pointer***, since it is the key pointer, which enables the following multiplication between FIR filter coefficient and microphone data from the data buffer:
 
-[0, 1, 2, ..., 126, 127]: FIR filter coefficients, which should be multiplied by the following microphone data, sequentially.
+<pre>
+[0, 1, 2, ..., 126, 127]: FIR filter coefficients 
 
-[0, 1, 2, ..., 126, 127]: microphone data at t=t0
-[1, 2, 3, ..., 127,   0]: microphone data at t=t1
-[2, 3, 4, ...,   0,   1]: microphone data at t=t2
+[0, 1, 2, ..., 126, 127]: microphone data at t=t0  
+[1, 2, 3, ..., 127,   0]: microphone data at t=t1  
+[2, 3, 4, ...,   0,   1]: microphone data at t=t2  
+</pre>
 
 ```verilog
 assign data_reg_a = coeff_data;
@@ -334,20 +336,20 @@ assign data_memory_addr = {pipe_channel, read_pointer};
 
 //Data Memory
 mic_array_buffer #(
-	.ADDR_WIDTH	(FIR_MEM_DATA_ADDR),	// 10
-	.DATA_WIDTH	(DATA_WIDTH)		// 16
-) mic_fir_data0 (
-	// write port a
-	.clk_a		(clk),
-	.we_a 		(data_load),
-	.adr_a		(wr_addr_deinterlaced),
-	.dat_a		(data_in),
+  .ADDR_WIDTH (FIR_MEM_DATA_ADDR),// 10
+  .DATA_WIDTH (DATA_WIDTH)// 16
+  ) mic_fir_data0 (
+  // write port a
+  .clk_a      (clk),
+  .we_a       (data_load),
+  .adr_a      (wr_addr_deinterlaced),
+  .dat_a      (data_in),
 
-	// read port b
-	.clk_b		(clk),
-	.adr_b		(data_memory_addr),
-	.en_b 		(load_data_memory), // output reg,	"true" during "tap_count" increases
-	.dat_b		(data_reg_b)
+  // read port b
+  .clk_b      (clk),
+  .adr_b      (data_memory_addr),
+  .en_b       (load_data_memory), // output reg, "true" during "tap_count" increases
+  .dat_b      (data_reg_b)
 );
 
 // "factor_wire" is [16+16-1:0], because it should have max. 16 bit x 16 bit
