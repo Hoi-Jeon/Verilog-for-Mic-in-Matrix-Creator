@@ -319,7 +319,7 @@ end
 Whenever ***write_memory*** is read from the output of CIC filter, ***wr_data_addr*** increases and it is defines as  (7 bits for 128 FIR filter elements) + (3 bits for channels). However, this value is renamed as ***wr_addr_deinterlaced*** when storing in data buffer and its stucture is slightly changed as follows: (3 bits for channels) + (7 bits for 128 FIR filter elements).
 
 ##### Pipe line stage 1
-In the stage 1, FIR filter coefficients and microphone data from the data buffer are multiplied with each other. Here, it is very important to understand how ***read_pointer***, since it is the key pointer, which enables the following multiplication between FIR filter coefficient and microphone data from the data buffer:
+In the stage 1, FIR filter coefficients and microphone data from the data buffer are multiplied with each other. Here, it is very important to understand how ***read_pointer*** works, since it is the key pointer, which enables the following multiplication between FIR filter coefficient and microphone data from the data buffer:
 
 <pre>
 [0, 1, 2, ..., 126, 127]: FIR filter coefficients 
@@ -355,7 +355,7 @@ mic_array_buffer #(
 // "factor_wire" is [16+16-1:0], because it should have max. 16 bit x 16 bit
 assign factor_wire = data_reg_a * data_reg_b;
 ```
-Its working principle can be clear easily by understanding the following waveforms.
+Its working principle should be clear by understanding the following waveforms.
 ![mic_fir_1](Pictures/mic_fir_1.png)
 </br><*Waveform in mic_fir: a start of the 1st time block for the microphone #1*>
 
